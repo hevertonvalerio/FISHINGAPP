@@ -41,15 +41,7 @@ async function migrate() {
     client = await pool.connect();
     console.log('✅ Conectado. Aplicando schema...');
 
-    // Executa statement por statement para melhor diagnóstico
-    const statements = sql
-      .split(';')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0 && !s.startsWith('--'));
-
-    for (const stmt of statements) {
-      await client.query(stmt);
-    }
+    await client.query(sql);
 
     console.log('✅ Schema aplicado com sucesso!');
   } catch (err) {
