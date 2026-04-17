@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
 
 const { helmetMiddleware, apiLimiter, authLimiter } = require('./middleware/security');
 const catchesRouter = require('./routes/catches');
@@ -26,6 +28,15 @@ app.use(express.urlencoded({ extended: true }));
 // ── Rate limiting ──────────────────────────────────────────
 app.use('/api/', apiLimiter);
 app.use('/api/auth/', authLimiter);
+
+// ── Swagger UI (CSP desabilitado para carregar assets inline) ──
+app.use('/api/docs', (req, res, next) => {
+  res.removeHeader('Content-Security-Policy');
+  next();
+}, swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: "Fisher's Guidapp API",
+  swaggerOptions: { persistAuthorization: true }
+}));
 
 // ── Rotas ──────────────────────────────────────────────────
 app.use('/api/auth', authRouter);

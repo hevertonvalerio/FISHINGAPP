@@ -5,7 +5,42 @@ const router = express.Router();
 const db = require('../database/db');
 const { generateToken } = require('../middleware/auth');
 
-// POST /api/auth/register
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Autenticação de usuários
+ */
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Cria nova conta
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, password]
+ *             properties:
+ *               name:     { type: string,  example: João Pescador }
+ *               email:    { type: string,  format: email, example: joao@email.com }
+ *               password: { type: string,  minLength: 6, example: senha123 }
+ *     responses:
+ *       201:
+ *         description: Conta criada — retorna token JWT
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       409:
+ *         description: Email já cadastrado
+ *       422:
+ *         description: Dados inválidos
+ */
 router.post(
   '/register',
   [
@@ -42,7 +77,51 @@ router.post(
   }
 );
 
-// POST /api/auth/login
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Faz login e retorna token JWT
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:    { type: string, format: email, example: joao@email.com }
+ *               password: { type: string, example: senha123 }
+ *     responses:
+ *       200:
+ *         description: Login bem-sucedido — retorna token JWT
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       401:
+ *         description: Credenciais inválidas
+ *
+ * /api/auth/me:
+ *   get:
+ *     summary: Retorna dados do usuário autenticado
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dados do usuário
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Token não fornecido ou inválido
+ */
 router.post(
   '/login',
   [
