@@ -10,6 +10,8 @@ interface Catch {
   date: string;
   time: string;
   weather: string;
+  baitUsed?: string;
+  photoUrl?: string;
 }
 
 interface FishingSpot {

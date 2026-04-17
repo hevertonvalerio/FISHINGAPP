@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Fish, MapPin, Cloud, TrendingUp, Plus, Calendar, Weight, Wind, Sunrise, Droplets, Anchor, Activity, Camera, Trophy, Users, Scan, Award, Info, Wrench, Target, ChevronLeft, ChevronRight, Heart, MessageCircle, Share2 } from 'lucide-react'
+import { api } from './services/api'
 import './App.css'
 
 interface Catch {
@@ -785,8 +786,7 @@ function App() {
       })
 
       const now = new Date()
-      const catchData: Catch = {
-        id: catches.length + 1,
+      const catchPayload = {
         species: newCatch.species,
         weight: parseFloat(newCatch.weight),
         length: newCatch.length ? parseFloat(newCatch.length) : 0,
@@ -798,7 +798,15 @@ function App() {
         photoUrl: newCatch.photoUrl || undefined
       }
 
-      setCatches([catchData, ...catches])
+      let savedCatch: Catch
+      try {
+        const fromApi = await api.createCatch(catchPayload)
+        savedCatch = { ...fromApi, baitUsed: newCatch.baitUsed || undefined, photoUrl: newCatch.photoUrl || undefined }
+      } catch {
+        savedCatch = { id: catches.length + 1, ...catchPayload }
+      }
+
+      setCatches([savedCatch, ...catches])
       setNewCatch({ species: '', weight: '', length: '', location: '', baitUsed: '', photoUrl: '' })
       setPhotoCapturedAt(null)
       setShowAddCatch(false)
