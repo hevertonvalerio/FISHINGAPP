@@ -21,9 +21,9 @@ interface FishingSpot {
   name: string
   catches: number
   rating: number
-  distance: number
-  latitude: number
-  longitude: number
+  distance?: number
+  latitude?: number
+  longitude?: number
 }
 
 interface MarineWeather {
@@ -206,39 +206,17 @@ function App() {
       return
     }
   }, [leagues])
-  const [catches, setCatches] = useState<Catch[]>([
-    {
-      id: 1,
-      species: 'Robalo',
-      weight: 2.5,
-      length: 45,
-      location: 'Lagoa da Conceição',
-      date: '2026-02-15',
-      time: '06:30',
-      weather: 'Ensolarado'
-    },
-    {
-      id: 2,
-      species: 'Corvina',
-      weight: 3.2,
-      length: 52,
-      location: 'Praia da Armação',
-      date: '2026-02-14',
-      time: '17:45',
-      weather: 'Nublado'
-    }
-  ])
-
-  const [spots] = useState<FishingSpot[]>([
-    { id: 1, name: 'Pesqueiro Maeda', catches: 45, rating: 4.8, distance: 12.5, latitude: -23.4892, longitude: -46.5731 },
-    { id: 2, name: 'Represa Billings', catches: 38, rating: 4.6, distance: 15.2, latitude: -23.7833, longitude: -46.5667 },
-    { id: 3, name: 'Represa Guarapiranga', catches: 32, rating: 4.5, distance: 18.3, latitude: -23.7167, longitude: -46.7333 },
-    { id: 4, name: 'Lago do Taboão', catches: 28, rating: 4.4, distance: 22.1, latitude: -23.6167, longitude: -46.7833 },
-    { id: 5, name: 'Pesqueiro Taquari', catches: 25, rating: 4.7, distance: 25.8, latitude: -23.5500, longitude: -46.6333 },
-    { id: 6, name: 'Represa de Ponte Nova', catches: 22, rating: 4.3, distance: 28.5, latitude: -23.4833, longitude: -46.4167 },
-    { id: 7, name: 'Pesqueiro Rancho Alegre', catches: 20, rating: 4.5, distance: 31.2, latitude: -23.5167, longitude: -46.8500 },
-    { id: 8, name: 'Lago Parque Ibirapuera', catches: 18, rating: 4.2, distance: 8.7, latitude: -23.5875, longitude: -46.6575 }
-  ])
+  const [catches, setCatches] = useState<Catch[]>([])
+  const [spots, setSpots] = useState<FishingSpot[]>([])
+  useEffect(() => {
+    Promise.all([
+      api.getCatches().catch(() => [] as Catch[]),
+      api.getSpots().catch(() => [] as FishingSpot[])
+    ]).then(([fetchedCatches, fetchedSpots]) => {
+      if (fetchedCatches.length > 0) setCatches(fetchedCatches)
+      if (fetchedSpots.length > 0) setSpots(fetchedSpots)
+    })
+  }, [])
 
   const [weather] = useState<MarineWeather>({
     temp: 23,
@@ -1091,7 +1069,7 @@ function App() {
   const biggestCatch = useMemo(() => catches.length > 0 ? Math.max(...catches.map(c => c.weight)) : 0, [catches])
   
   // Memoize sorted spots to avoid sorting on every render
-  const sortedSpots = useMemo(() => [...spots].sort((a, b) => a.distance - b.distance), [spots])
+  const sortedSpots = useMemo(() => [...spots].sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0)), [spots])
   const nearestSpot = useMemo(() => sortedSpots[0], [sortedSpots])
   
   // Memoize fish species list
@@ -1816,7 +1794,7 @@ function App() {
                 </button>
                 <div className="flex-1 bg-white/90 backdrop-blur-md rounded-2xl px-3 py-2 shadow">
                   <div className="text-sm font-bold text-gray-900 truncate">{mapSpot.name}</div>
-                  <div className="text-[11px] text-gray-600 truncate">Lat {mapSpot.latitude.toFixed(5)} • Lon {mapSpot.longitude.toFixed(5)}</div>
+                  <div className="text-[11px] text-gray-600 truncate">Lat {mapSpot.latitude?.toFixed(5) ?? '—'} • Lon {mapSpot.longitude?.toFixed(5) ?? '—'}</div>
                 </div>
               </div>
 
@@ -1833,8 +1811,8 @@ function App() {
                 <div className="bg-white/95 backdrop-blur-md rounded-3xl p-4 shadow-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-bold text-gray-900">{mapSpot.distance.toFixed(1)} km</div>
-                      <div className="text-xs text-gray-600">ETA: {Math.max(6, Math.round(mapSpot.distance * 3))} min</div>
+                      <div className="text-sm font-bold text-gray-900">{mapSpot.distance?.toFixed(1) ?? '—'} km</div>
+                      <div className="text-xs text-gray-600">ETA: {mapSpot.distance ? Math.max(6, Math.round(mapSpot.distance * 3)) : '—'} min</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-xs font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full">

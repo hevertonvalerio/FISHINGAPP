@@ -19,6 +19,9 @@ interface FishingSpot {
   name: string;
   catches: number;
   rating: number;
+  distance?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface Weather {
