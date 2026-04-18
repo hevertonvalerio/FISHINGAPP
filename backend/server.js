@@ -20,6 +20,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:4173',
   'https://heroic-granita-7a1aa3.netlify.app',
+  'https://fishingapp-1.onrender.com',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
