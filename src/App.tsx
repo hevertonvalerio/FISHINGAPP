@@ -768,22 +768,28 @@ function App() {
       return
     }
 
-    if (!('geolocation' in navigator)) {
-      setRegisterError('Este dispositivo/navegador não suporta geolocalização. O registro só pode ser feito em tempo real com GPS.')
-      return
-    }
-
     setRegisterLoading(true)
     setRegisterError(null)
 
     try {
-      await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve(pos),
-          (err) => reject(err),
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        )
-      })
+      if ('geolocation' in navigator) {
+        try {
+          const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+              (p) => resolve(p),
+              (err) => reject(err),
+              { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+            )
+          })
+          const lat = pos.coords.latitude.toFixed(5)
+          const lon = pos.coords.longitude.toFixed(5)
+          if (!newCatch.location) {
+            setNewCatch((prev) => ({ ...prev, location: `Lat ${lat}, Lon ${lon}` }))
+          }
+        } catch {
+          // GPS negado ou timeout — continua com localização digitada
+        }
+      }
 
       const now = new Date()
       const catchPayload = {
@@ -811,14 +817,8 @@ function App() {
       setPhotoCapturedAt(null)
       setShowAddCatch(false)
     } catch (e) {
-      const err = e as GeolocationPositionError
-      if (typeof err?.code === 'number' && err.code === err.PERMISSION_DENIED) {
-        setRegisterError('Permissão de localização negada. Para registrar em tempo real, habilite o GPS.')
-      } else if (typeof err?.code === 'number' && err.code === err.TIMEOUT) {
-        setRegisterError('Tempo esgotado ao obter sua localização. Tente novamente com o GPS ativo.')
-      } else {
-        setRegisterError('Não foi possível obter sua localização. O registro só pode ser feito em tempo real.')
-      }
+      const err = e as Error
+      setRegisterError(err?.message || 'Erro ao registrar captura. Tente novamente.')
     } finally {
       setRegisterLoading(false)
     }
