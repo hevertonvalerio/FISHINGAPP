@@ -23,9 +23,18 @@ const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
+const ALLOWED_ORIGIN_PATTERNS = [
+  /^https:\/\/[\w-]+\.onrender\.com$/,
+  /^https:\/\/[\w-]+\.netlify\.app$/,
+];
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    const allowed =
+      !origin ||
+      ALLOWED_ORIGINS.includes(origin) ||
+      ALLOWED_ORIGIN_PATTERNS.some((re) => re.test(origin));
+    if (allowed) {
       callback(null, origin || '*');
     } else {
       callback(new Error(`CORS: origem não permitida — ${origin}`));
